@@ -75,7 +75,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "OracleSource",
-						"oracleReaderQuery": "SELECT \n   CF.NR_CLIENTE AS NR_CLIENTE,\n   CF.fl_sexo_biologico as FL_SEXO\nFROM DBURGER.DB_CLI_FISICA CF    \n",
+						"oracleReaderQuery": "SELECT \n   CF.NR_CLIENTE AS NR_CLIENTE,\n   CF.fl_sexo_biologico as FL_SEXO\nFROM DBURGER.DB_CLI_FISICA CF;   \n",
 						"partitionOption": "None",
 						"numberPrecision": 38,
 						"numberScale": 18,
@@ -117,51 +117,6 @@
 						}
 					}
 				]
-			},
-			{
-				"name": "Fluxo_df_cp_2",
-				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "Copiar_DB_CLIENTE",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Copiar_DB_CLI_FISICA",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataflow": {
-						"referenceName": "Fluxo_df_cp_2",
-						"type": "DataFlowReference",
-						"datasetParameters": {
-							"DBCLIENTE": {
-								"nome_do_arquivo": "dbcliente"
-							},
-							"DBCLIENTEFISICO": {
-								"nome_do_arquivo": "dbclientefisico"
-							}
-						}
-					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
-					},
-					"traceLevel": "Fine"
-				}
 			}
 		],
 		"annotations": []

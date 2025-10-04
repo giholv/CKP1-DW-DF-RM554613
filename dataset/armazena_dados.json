@@ -19,7 +19,7 @@
 					"value": "@dataset().nome_do_arquivo",
 					"type": "Expression"
 				},
-				"container": "bronzerm557839-checkpoint"
+				"container": "raw"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
