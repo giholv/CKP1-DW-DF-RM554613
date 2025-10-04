@@ -117,6 +117,210 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "Copiar_db_end_cli",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "select\n    ec.nr_cliente,\n    ec.cd_logradouro_cli\nFROM DBURGER.db_end_cli EC;",
+						"partitionOption": "None",
+						"numberPrecision": 38,
+						"numberScale": 18,
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OracleTable1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "armazena_dados",
+						"type": "DatasetReference",
+						"parameters": {
+							"nome_do_arquivo": "dbendcli"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copiar_db_logradouro",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "SELECT\n    l.cd_logradouro,\n    c.nm_cidade AS NM_CIDADE,\n    e.nm_estado as NM_ESTADO\nFROM db_logradouro L\nINNER JOIN DB_BAIRRO B ON l.cd_bairro=b.cd_bairro\nINNER JOIN DB_CIDADE C ON b.cd_cidade=c.cd_cidade\nINNER JOIN DB_ESTADO E ON c.sg_estado=e.sg_estado;",
+						"partitionOption": "None",
+						"numberPrecision": 38,
+						"numberScale": 18,
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OracleTable1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "armazena_dados",
+						"type": "DatasetReference",
+						"parameters": {
+							"nome_do_arquivo": "dblogradouro"
+						}
+					}
+				]
+			},
+			{
+				"name": "Fluxo_df_cp_2",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Copiar_db_logradouro",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Copiar_db_end_cli",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Copiar_DB_CLI_FISICA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Copiar_DB_CLIENTE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "Fluxo_df_cp_2",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"DBCLIENTE": {
+								"nome_do_arquivo": {
+									"value": "@activity('Copiar_DB_CLIENTE').output",
+									"type": "Expression"
+								}
+							},
+							"DBCLIENTEFISICO": {
+								"nome_do_arquivo": {
+									"value": "@activity('Copiar_DB_CLI_FISICA').output",
+									"type": "Expression"
+								}
+							},
+							"DBENDCLI": {
+								"nome_do_arquivo": {
+									"value": "@activity('Copiar_db_end_cli').output",
+									"type": "Expression"
+								}
+							},
+							"DBLOGRADOURO": {
+								"nome_do_arquivo": {
+									"value": "@activity('Copiar_db_logradouro').output",
+									"type": "Expression"
+								}
+							},
+							"teste": {
+								"nome_do_arquivo": "teste"
+							}
+						},
+						"linkedServiceParameters": {
+							"DBLOGRADOURO": {
+								"schemaLinkedService": {
+									"nome_do_arquivo": {
+										"value": "@activity('Copiar_db_logradouro').output",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
 			}
 		],
 		"annotations": []
